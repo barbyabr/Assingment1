@@ -1,0 +1,79 @@
+﻿@page "/ViewOnePost/{id:int}"
+@using Domain.Models
+@using HttpClients.ClientInterfaces
+@using Domain.DTOs
+@inject IPostService postService
+@inject IUserService userService
+<div class="card">
+    @if (users == null)
+    {
+        <label>Loading users...</label>
+    }
+    else if (!users.Any())
+    {
+        <label>No users, you cannot create a Post</label>
+    }
+    else if (dto == null)
+    {
+        <label>Loading Post data..</label>
+    }
+    else
+    {
+        <h3>View Post</h3>
+        <div class="form-group field">
+            <label>Creator Id:</label>
+            <input type="text" @bind="dto.OwnerId"/>
+        </div>
+        <div class="form-group field">
+             <label>Username:</label>
+            <input type="text" @bind="dto.Username"/>
+        </div>
+        <div class="form-group field">
+            <label>Title:</label>
+            <input type="text" @bind="dto.Title"/>
+        </div>
+        <div class="form-group field">
+            <label>Post:</label>
+            <input type="text" @bind="dto.Text"/> 
+        </div>
+    }
+    @if (!string.IsNullOrEmpty(msg))
+    {
+        <label style="color: red">@msg</label>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private PostViewDto dto = null!;
+    private string msg = "";
+    private IEnumerable<User>? users;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        msg = "";
+        try
+        {
+            users = await userService.GetUsersAsync();
+            PostBasicDto postData = await postService.GetByIdAsync(Id);
+            User creator = users.First(user => user.userName.Equals(postData.Username));
+
+            dto = new(Id)
+            {
+                Title = postData.Title,
+                Username = creator.userName,
+                OwnerId = creator.Id,
+                Text = postData.Text
+            };
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            msg = e.Message;
+        }
+    }
+    
+
+}

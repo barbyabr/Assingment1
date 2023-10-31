@@ -5,48 +5,57 @@
 @inject NavigationManager navMng
 <h3>Posts</h3>
 
-<div>
-    <button @onclick="LoadPosts">Load</button>
-</div>
-
-@if (posts == null)
-{
-}
-else if (!posts.Any())
-{
-    <p>No posts to view</p>
-}
-else
-{
-    <table class="table">
-        <thead>
-        <tr>
-            <th>Post ID</th>
-            <th>Owner ID</th>
-            <th>Title</th>
-            <th>Post</th>
-        </tr>
-        </thead>
-        <tbody>
-        @foreach (var item in posts)
+<AuthorizeView>
+    <NotAuthorized>
+        <p>Please log in</p>
+    </NotAuthorized>
+    <Authorized>
+        
+        <div>
+            <button @onclick="LoadPosts">Load</button>
+        </div>
+        
+        @if (posts == null)
         {
-            <tr>
-                <td>@item.Id</td>
-                <td>@item.User.userName</td>
-                <td>@item.Title</td>
-                <td>
-                    <img src="icons/edit.gif" class="funnel" @onclick="@(() => navMng.NavigateTo($"/ViewOnePost/{item.Id}"))" alt="View"/>
-                </td>
-            </tr>
-            
         }
-        </tbody>
-    </table>
-}
-@if (!string.IsNullOrEmpty(msg))
-{
-    <label style="color: red">@msg</label>
-}
+        else if (!posts.Any())
+        {
+            <p>No posts to view</p>
+        }
+        else
+        {
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Post ID</th>
+                    <th>Owner ID</th>
+                    <th>Title</th>
+                    <th>Post</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (var item in posts)
+                {
+                    <tr>
+                        <td>@item.Id</td>
+                        <td>@item.User.userName</td>
+                        <td>@item.Title</td>
+                        <td>
+                            <img src="icons/edit.gif" class="funnel" @onclick="@(() => navMng.NavigateTo($"/ViewOnePost/{item.Id}"))" alt="View"/>
+                        </td>
+                    </tr>
+                    
+                }
+                </tbody>
+            </table>
+        }
+        @if (!string.IsNullOrEmpty(msg))
+        {
+            <label style="color: red">@msg</label>
+        }
+    </Authorized>
+    
+</AuthorizeView>
 
 @code {
     private IEnumerable<Post>? posts;

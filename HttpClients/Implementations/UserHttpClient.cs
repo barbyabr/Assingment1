@@ -15,20 +15,15 @@ public class UserHttpClient : IUserService
         this.client = client;
     }
 
-    public async Task<User> CreateAsync(UserCreationDto dto)
+    public async Task CreateAsync(UserCreationDto dto)
     {
-        HttpResponseMessage response = await client.PostAsJsonAsync("/users", dto);
+        HttpResponseMessage response = await client.PostAsJsonAsync("/Auth/register", dto);
         string result = await response.Content.ReadAsStringAsync();
         if (!response.IsSuccessStatusCode)
         {
             throw new Exception(result);
         }
 
-        User user = JsonSerializer.Deserialize<User>(result, new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        })!;
-        return user;
     }
 
     public async Task<IEnumerable<User>> GetUsersAsync(string? usernameContains = null)

@@ -2,52 +2,52 @@
 @using Domain.Models
 @using HttpClients.ClientInterfaces
 @using Domain.DTOs
+@using BlazorWASM.Services
 @inject IUserService userService
 @inject IPostService postService
+@inject IAuthService authService
 
-<div class="card">
-    @if (users == null)
-    {
-        <label>Loading users...</label>
-    }
-    else if (!users.Any())
-    {
-        <label>No users, you cannot create a post without an account.</label>
-    }
-    else
-    {
-        <h3>Create Post</h3>
-        <div class="form-group field">
-            <label>Title:</label>
-            <input type="text" @bind="PostTitle"/>
-        </div>
-        <div class="form-group field">
-            <label>Post:</label>
-            <input type="text" @bind="PostText"/>
-        </div>
-        <div class="form-group field">
-            <label>Creator - I will somehow change it later for the logging shit</label>
-            <select @bind="selectedUserId">
-                <option>Choose</option>
-                @foreach (User user in users)
+<AuthorizeView>
+    <NotAuthorized>
+        <p>Please log in</p>
+    </NotAuthorized>
+<Authorized>
+
+    <div class="card">
+        @if (users == null)
+        {
+            <label>Loading users...</label>
+        }
+        else if (!users.Any())
+        {
+            <label>No users, you cannot create a post without an account.</label>
+        }
+        else
+        {
+            <h3>Create Post</h3>
+            <div class="form-group field">
+                <label>Title:</label>
+                <input type="text" @bind="PostTitle"/>
+            </div>
+            <div class="form-group field">
+                <label>Post:</label>
+                <input type="text" @bind="PostText"/>
+            </div>
+            <div class="button-row">
+                @if (!string.IsNullOrEmpty(msg))
                 {
-                    <option value="@user.Id">@user.userName</option>
+                    <label style="color: red">@msg</label>
                 }
-            </select>
-        </div>
-        <div class="button-row">
-            @if (!string.IsNullOrEmpty(msg))
-            {
-                <label style="color: red">@msg</label>
-            }
-            <button @onclick="Create" class="acceptbtn">Create</button>
-        </div>
-    }
-</div>
+                <button @onclick="Create" class="acceptbtn">Create</button>
+            </div>
+        }
+    </div>
+</Authorized>
+</AuthorizeView>
 
 @code {
     private IEnumerable<User>? users;
-    private int? selectedUserId;
+    private string? selectedUserName;
     private string PostTitle = "";
     private string PostText = "";
 
@@ -70,11 +70,6 @@
     private async Task Create()
     {
         msg = "";
-        if (selectedUserId == null)
-        {
-            msg = "You must select the creator of the post!";
-            return;
-        }
         if (string.IsNullOrEmpty(PostTitle) || string.IsNullOrEmpty(PostText))
         {
             msg = "Title and post cannot be empty!";
@@ -84,13 +79,13 @@
         {
             try
             {
-                Console.WriteLine("test1234587");
-                PostCreationDto dto = new((int)selectedUserId, PostTitle, PostText);
+                selectedUserName = authService.GetAuthAsync().Result.Identity.Name;
+                PostCreationDto dto = new((String)selectedUserName, PostTitle, PostText);
                 await postService.CreateAsync(dto);
                 msg = "Post created";
                 PostTitle = "";
                 PostText = "";
-                selectedUserId = null;
+                selectedUserName = null;
             }
             catch (Exception e)
             {

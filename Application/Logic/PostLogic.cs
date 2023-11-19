@@ -26,7 +26,7 @@ public class PostLogic : IPostLogic
         }
 
         ValidatePost(dto);
-        Post post = new Post(user, dto.Title,dto.Text);
+        Post post = new Post(user.Id, dto.Title,dto.Text);
         Post created = await postDao.CreateAsync(post);
         return created;
     }
@@ -45,7 +45,7 @@ public class PostLogic : IPostLogic
             throw new Exception($"Post with id {id} was not found");
         }
 
-        return new PostBasicDto(post.Id, post.User.userName, post.Title, post.text);
+        return new PostBasicDto(post.Id, post.User.userName, post.Title, post.Text);
     }
 
     private void ValidatePost(PostCreationDto dto)
